@@ -1,0 +1,53 @@
+---
+- name: Deploy Website from GitHub to EC2 instances
+  hosts: dev
+  remote_user: ec2-user
+  become: yes
+
+  vars:
+    github_repo: "https://github.com/akinwunmi-akinrimisi/webApp-quizz.git"
+    github_branch: "master"
+    website_dir: "/var/www/html"
+
+  tasks:
+    - name: Update package manager cache
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Start Apache service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+    - name: Clone website repository from GitHub
+      git:
+        repo: "{{ github_repo }}"
+        dest: "{{ website_dir }}"
+        version: "{{ github_branch }}"
+        force: yes
+
+    - name: Set ownership and permissions for website files
+      file:
+        path: "{{ website_dir }}"
+        owner: apache
+        group: apache
+        recurse: yes
+        state: directory
+
+    - name: Restart Apache service
+      service:
+        name: httpd
+        state: restarted

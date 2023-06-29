@@ -1,0 +1,23 @@
+---
+- name: Install Apache on EC2 instances
+  hosts: all
+  remote_user: ec2-user
+  become: yes
+
+  tasks:
+    - name: Update package manager cache
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Start Apache service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
